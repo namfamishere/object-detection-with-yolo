@@ -1,3 +1,4 @@
+from cv2 import destroyAllWindows
 import numpy as np
 import argparse
 import time
@@ -5,9 +6,11 @@ import cv2
 import os
 
 # construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument('-i', '--image', required=True, 
+ap = argparse.ArgumentParser(description="object detection in image")
+ap.add_argument('-i', '--input', required=True, 
     help='path to input image')
+ap.add_argument('-o', '--output', 
+        help="path to resulting image")
 ap.add_argument('-y', '--yolo', required=True, 
     help='base path to YOLO directory')
 ap.add_argument('-c', '--confidence', type=float, default=0.5, 
@@ -33,12 +36,12 @@ print("Loading YOLO from disk...")
 net = cv2.dnn.readNetFromDarknet(config_path, weights_path)
 
 # load the input image and grab its spatial dimensions
-image = cv2.imread(args["image"])
+image = cv2.imread(args["input"])
 (H, W) = image.shape[:2]
 
 # determine only the *output* layer names that we need from YOLO
 ln = net.getLayerNames()
-ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+ln = [ln[i - 1] for i in net.getUnconnectedOutLayers()]
 
 # construct a blob from the input image and then perform a forward
 # pass of the YOLO object detector, giving the bounding boxes and asscociated probabilities
@@ -98,7 +101,7 @@ if len(idxs) > 0:
         cv2.putText(image, text, (x, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
     # show the output image
-    cv2.imshow("Image", image)
+    cv2.imshow("Result", image)
+    cv2.imwrite(args['output'], image)
     cv2.waitKey(0)
-
 
